@@ -11,9 +11,18 @@ namespace Maeve
 {
   class Program
   {
+    /// <summary>Host for dependency injection</summary>
     private static IHost _Host { get; set; }
+
+    /// <summary>UDP Service instance (from DI)</summary>
     public static Server _Server { get { return _Host.Services.GetRequiredService<Server>(); } }
 
+
+    /// <summary>
+    /// Main method
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     static async Task Main(string[] args)
     {
       SetupDependencies(args);
@@ -23,15 +32,20 @@ namespace Maeve
 
       logger.LogInformation("Application Starting");
 
+      // Gets the Server object
       Server server = _Host.Services.GetRequiredService<Server>();
       
+      /* Task list to run parrallel */
       List<Task> taskLst = new List<Task>();
       taskLst.Add(Task.Run(async () => await server.StartAsync()));
       taskLst.Add(Task.Run(async () =>
       { 
+        /* Goes around and prints data - will revise */
         bool loggedNoPlayerData = false;
         while(true)
         { 
+          // Logs data every half second IF data has been logged previously
+          // Otherwise attempts to try every 5 seconds
           await Task.Delay(500 * (loggedNoPlayerData ? 10 : 1));
 
           if (server.PlayerData.IsEmpty)
@@ -58,6 +72,11 @@ namespace Maeve
       logger.LogInformation("Application Ending");
     }
 
+
+    /// <summary>
+    /// Dependency injection builder 
+    /// </summary>
+    /// <param name="nArgs">¯\_(ツ)_/¯</param>
     private static void SetupDependencies(string[] nArgs)
     {
       _Host = Host.CreateDefaultBuilder(nArgs)
